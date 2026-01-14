@@ -1,90 +1,109 @@
 import { useState } from "react";
 
-export default function AddMovieForm({ movies, setMovies }) {
+export default function AddMovieForm({ onAdd }) {
   const [title, setTitle] = useState("");
   const [genre, setGenre] = useState("");
   const [year, setYear] = useState("");
   const [image, setImage] = useState("");
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleAddMovie = () => {
-    if (!title || !genre || !year || !image) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!title || !genre || !year) {
+      alert("Title, Genre, dan Year wajib diisi");
+      return;
+    }
 
     const newMovie = {
-      id: crypto.randomUUID(),
       title,
       genre,
-      year,
+      year: Number(year),
       image,
+      description,
     };
 
-    setMovies([...movies, newMovie]);
-    setTitle("");
-    setGenre("");
-    setYear("");
-    setImage("");
+    try {
+      setLoading(true);
+      await onAdd(newMovie); //
+      setTitle("");
+      setGenre("");
+      setYear("");
+      setImage("");
+      setDescription("");
+    } catch (err) {
+      alert("Gagal menambah movie");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="w-full bg-gray-900/80 backdrop-blur rounded-2xl p-6">
-      <h2 className="text-white text-xl font-semibold mb-6">➕ Add Movie</h2>
+    <form
+      onSubmit={handleSubmit}
+      className="bg-gray-900 p-6 rounded-xl mb-8 max-w-3xl mx-auto"
+    >
+      <h2 className="text-white text-xl font-bold mb-4">Add New Movie</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid md:grid-cols-2 gap-4">
         <input
           type="text"
-          placeholder="Movie Title"
+          placeholder="Title"
+          className="p-2 rounded bg-white/10 text-white"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="col-span-1 md:col-span-1 p-3 rounded bg-gray-800 text-white outline-none focus:ring-2 focus:ring-red-600"
         />
 
         <input
           type="text"
           placeholder="Genre"
+          className="p-2 rounded bg-white/10 text-white"
           value={genre}
           onChange={(e) => setGenre(e.target.value)}
-          className="col-span-1 p-3 rounded bg-gray-800 text-white outline-none focus:ring-2 focus:ring-red-600"
         />
 
         <input
           type="number"
           placeholder="Year"
+          className="p-2 rounded bg-white/10 text-white"
           value={year}
           onChange={(e) => setYear(e.target.value)}
-          className="col-span-1 p-3 rounded bg-gray-800 text-white outline-none focus:ring-2 focus:ring-red-600"
         />
 
         <input
           type="text"
           placeholder="Image URL"
+          className="p-2 rounded bg-white/10 text-white"
           value={image}
           onChange={(e) => setImage(e.target.value)}
-          className="col-span-1 md:col-span-4 p-3 rounded bg-gray-800 text-white outline-none focus:ring-2 focus:ring-red-600"
         />
       </div>
 
+      <textarea
+        placeholder="Description"
+        className="w-full p-2 rounded bg-white/10 text-white mt-4"
+        rows="3"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+
       {image && (
-        <div className="mt-4">
-          <p className="text-gray-400 text-sm mb-2">Preview</p>
-          <img
-            src={image}
-            alt="Preview"
-            onError={(e) => {
-              e.target.src =
-                "https://via.placeholder.com/500x750?text=Invalid+Image";
-            }}
-            className="w-40 h-56 object-cover rounded-lg shadow-md"
-          />
-        </div>
+        <img
+          src={image}
+          alt="preview"
+          className="mt-4 w-32 h-48 object-cover rounded"
+          onError={(e) => (e.target.style.display = "none")}
+        />
       )}
 
-      <div className="flex justify-end mt-6">
-        <button
-          onClick={handleAddMovie}
-          className="bg-red-600 hover:bg-red-700 px-6 py-2 rounded text-white font-medium transition"
-        >
-          Add Movie
-        </button>
-      </div>
-    </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded"
+      >
+        {loading ? "Saving..." : "Add Movie"}
+      </button>
+    </form>
   );
 }

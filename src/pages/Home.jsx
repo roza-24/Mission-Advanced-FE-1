@@ -1,7 +1,6 @@
 import useMovies from "../hooks/useMovie";
 import MovieList from "../components/organisms/MovieList";
-import initialMovies from "../data/movies";
-import SearchBar from "../components/SearchBar";
+
 import AddMovieForm from "../components/forms/AddMovieForm";
 
 export default function Home() {
