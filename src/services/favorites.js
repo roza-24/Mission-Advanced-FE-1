@@ -19,3 +19,4 @@ export function isFavorite(id) {
   const favs = getFavorites();
   return favs.some((m) => m.id === id);
 }
+

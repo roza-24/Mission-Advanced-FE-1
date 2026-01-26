@@ -1,108 +1,112 @@
-import { useState } from "react";
+// src/components/forms/AddMovieForm.jsx
+import { useState, useEffect } from "react";
+import { createMovie, updateMovieApi } from "../../services/movieService";
+import { toast } from "react-hot-toast";
 
-export default function AddMovieForm({ onAdd }) {
-  const [title, setTitle] = useState("");
-  const [genre, setGenre] = useState("");
-  const [year, setYear] = useState("");
-  const [image, setImage] = useState("");
-  const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
+export default function AddMovieForm({
+  onSuccess,
+  onAdd,
+  onUpdate,
+  editingMovie,
+}) {
+  const [formData, setFormData] = useState({
+    title: "",
+    genre: "Action",
+    year: "",
+    image: "",
+    description: "",
+  });
+
+  useEffect(() => {
+    if (editingMovie) {
+      setFormData({
+        title: editingMovie.title || "",
+        genre: editingMovie.genre || "Action",
+        year: editingMovie.year || "",
+        image: editingMovie.image || "",
+        description: editingMovie.description || "",
+      });
+    }
+  }, [editingMovie]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!title || !genre || !year) {
-      alert("Title, Genre, dan Year wajib diisi");
-      return;
-    }
-
-    const newMovie = {
-      title,
-      genre,
-      year: Number(year),
-      image,
-      description,
+    const payload = {
+      title: String(formData.title),
+      genre: String(formData.genre || "Action"),
+      year: Number(formData.year),
+      image: String(formData.image),
+      description: String(formData.description),
     };
 
     try {
-      setLoading(true);
-      await onAdd(newMovie); //
-      setTitle("");
-      setGenre("");
-      setYear("");
-      setImage("");
-      setDescription("");
+      if (editingMovie) {
+        await updateMovieApi(editingMovie.id, payload);
+      } else {
+        await createMovie(payload);
+      }
+      onSuccess();
     } catch (err) {
-      alert("Gagal menambah movie");
-    } finally {
-      setLoading(false);
+      console.error("ALASAN ERROR 500:", err.response?.data);
+      toast.error("Gagal memproses data ke server");
     }
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-gray-900 p-6 rounded-xl mb-8 max-w-3xl mx-auto"
+      className="bg-gray-900 p-6 rounded-xl border border-white/10 max-w-4xl mx-auto my-6"
     >
-      <h2 className="text-white text-xl font-bold mb-4">Add New Movie</h2>
-
-      <div className="grid md:grid-cols-2 gap-4">
+      <h2 className="text-white text-xl font-bold mb-4">
+        {editingMovie ? "Edit Film" : "Add Film"}
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <input
-          type="text"
-          placeholder="Title"
-          className="p-2 rounded bg-white/10 text-white"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          className="bg-gray-800 text-white p-3 rounded border border-gray-700"
+          placeholder="Judul Film"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          required
         />
-
+        <select
+          className="bg-gray-800 text-white p-3 rounded border border-gray-700"
+          value={formData.genre}
+          onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
+        >
+          <option>Action</option>
+          <option>Comedy</option>
+          <option>Drama</option>
+          <option>Sci-Fi</option>
+          <option>Crime</option>
+        </select>
         <input
-          type="text"
-          placeholder="Genre"
-          className="p-2 rounded bg-white/10 text-white"
-          value={genre}
-          onChange={(e) => setGenre(e.target.value)}
-        />
-
-        <input
+          className="bg-gray-800 text-white p-3 rounded border border-gray-700"
+          placeholder="Tahun Rilis"
           type="number"
-          placeholder="Year"
-          className="p-2 rounded bg-white/10 text-white"
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
+          value={formData.year}
+          onChange={(e) => setFormData({ ...formData, year: e.target.value })}
         />
-
         <input
-          type="text"
-          placeholder="Image URL"
-          className="p-2 rounded bg-white/10 text-white"
-          value={image}
-          onChange={(e) => setImage(e.target.value)}
+          className="bg-gray-800 text-white p-3 rounded border border-gray-700"
+          placeholder="URL Gambar"
+          value={formData.image}
+          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
         />
       </div>
-
       <textarea
-        placeholder="Description"
-        className="w-full p-2 rounded bg-white/10 text-white mt-4"
-        rows="3"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
-
-      {image && (
-        <img
-          src={image}
-          alt="preview"
-          className="mt-4 w-32 h-48 object-cover rounded"
-          onError={(e) => (e.target.style.display = "none")}
-        />
-      )}
-
+        className="bg-gray-800 text-white p-3 rounded border border-gray-700 w-full mt-4"
+        placeholder="Deskripsi Film"
+        value={formData.description}
+        onChange={(e) =>
+          setFormData({ ...formData, description: e.target.value })
+        }
+      ></textarea>
       <button
         type="submit"
-        disabled={loading}
-        className="mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded"
+        className="w-full mt-4 bg-red-600 text-white py-3 rounded font-bold hover:bg-red-700"
       >
-        {loading ? "Saving..." : "Add Movie"}
+        {editingMovie ? "Save" : "Create"}
       </button>
     </form>
   );

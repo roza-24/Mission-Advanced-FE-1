@@ -6,7 +6,6 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // 🔐 CEK LOGIN
   const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
@@ -17,7 +16,6 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 🔓 LOGOUT
   const handleLogout = () => {
     localStorage.removeItem("user");
     window.location.replace("/login");

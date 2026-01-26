@@ -1,62 +1,61 @@
-import { getFavorites, removeFavorite } from "../services/favorites";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { getFavorites, removeFavorite } from "../services/movieService";
+import toast from "react-hot-toast";
 
 export default function Favorites() {
   const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setFavorites(getFavorites());
+    fetchFavorites();
   }, []);
 
-  const handleRemove = (id) => {
-    removeFavorite(id);
-    setFavorites(getFavorites());
+  const fetchFavorites = () => {
+    setLoading(true);
+    getFavorites()
+      .then((res) => setFavorites(res.data))
+      .catch(() => toast.error("Gagal memuat favorites"))
+      .finally(() => setLoading(false));
   };
 
-  if (favorites.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-900 text-white flex flex-col justify-center items-center">
-        <h2 className="text-3xl font-bold mb-4">Belum ada favorit 😢</h2>
-        <Link
-          to="/"
-          className="text-blue-400 underline text-lg hover:text-blue-300"
-        >
-          Cari film sekarang →
-        </Link>
-      </div>
-    );
-  }
+  const handleRemove = async (id) => {
+    try {
+      await removeFavorite(id);
+      toast.success("Dihapus dari Favorites");
+      setFavorites((prev) => prev.filter((f) => f.movieId !== id));
+    } catch {
+      toast.error("Gagal menghapus favorite");
+    }
+  };
+
+  if (loading)
+    return <p className="pt-24 text-white text-center">Loading...</p>;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <div className="p-6">
-        <h1 className="text-3xl font-bold mb-6">My Favorites ❤️</h1>
+    <div className="pt-24 max-w-7xl mx-auto px-6">
+      <h1 className="text-2xl text-white mb-6">My Favorites</h1>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {favorites.map((movie) => (
-            <div
-              key={movie.id}
-              className="bg-gray-800 rounded-xl overflow-hidden shadow-lg"
+      {favorites.length === 0 && (
+        <p className="text-gray-400">Belum ada favorite</p>
+      )}
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {favorites.filter(Boolean).map((movie) => (
+          <div
+            key={movie.movieId}
+            className="bg-gray-800 rounded-xl overflow-hidden p-3"
+          >
+            <img src={movie.image} className="w-full h-48 object-cover" />
+            <h3 className="text-white mt-2">{movie.title}</h3>
+
+            <button
+              onClick={() => handleRemove(movie.movieId)}
+              className="mt-3 bg-red-600 px-3 py-1 rounded text-sm text-white"
             >
-              <Link to={`/movie/${movie.id}`}>
-                <img src={movie.poster} className="w-full h-64 object-cover" />
-              </Link>
-
-              <div className="p-4">
-                <h3 className="font-semibold text-white">{movie.title}</h3>
-                <p className="text-gray-400 text-sm">{movie.year}</p>
-
-                <button
-                  className="mt-3 bg-red-600 w-full py-2 rounded-lg hover:bg-red-700"
-                  onClick={() => handleRemove(movie.id)}
-                >
-                  Remove Favorite
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+              Remove
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

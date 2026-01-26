@@ -1,32 +1,42 @@
-// Simpan user baru
-export function registerUser(user) {
-  localStorage.setItem("users", JSON.stringify(user));
-}
+export function registerUser(userData) {
+  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const existingUser = users.find(
+    (u) => u.email === userData.email || u.username === userData.username
+  );
 
-// Ambil user dari storage
-export function getUser() {
-  return JSON.parse(localStorage.getItem("users"));
-}
-
-// Simpan status login
-export function loginUser(email, password) {
-  const user = getUser();
-  if (!user) return { success: false, message: "User belum terdaftar" };
-
-  if (user.email === email && user.password === password) {
-    localStorage.setItem("loggedIn", "true");
-    return { success: true };
+  if (existingUser) {
+    throw new Error("User already exists");
   }
 
-  return { success: false, message: "Email atau password salah" };
+  users.push(userData);
+  localStorage.setItem("users", JSON.stringify(users));
 }
 
-// Cek status login
-export function isLoggedIn() {
-  return localStorage.getItem("loggedIn") === "true";
+export function loginUser(identifier, password) {
+  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const found = users.find(
+    (u) =>
+      (u.username === identifier || u.email === identifier) &&
+      u.password === password
+  );
+
+  if (!found) {
+    throw new Error("Invalid credentials");
+  }
+
+  localStorage.setItem(
+    "user",
+    JSON.stringify({
+      email: found.email,
+      token: "mock-token-string-for-testing-purposes",
+    })
+  );
 }
 
-// Logout
-export function logout() {
-  localStorage.removeItem("loggedIn");
+export function logoutUser() {
+  localStorage.removeItem("user");
+}
+
+export function getLoggedInUser() {
+  return JSON.parse(localStorage.getItem("user"));
 }

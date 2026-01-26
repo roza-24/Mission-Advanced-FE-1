@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useState } from "react";
+import { Toaster } from "react-hot-toast";
 
 import Navbar from "./components/organisms/Navbar";
 import Home from "./pages/Home";
@@ -17,6 +18,7 @@ export default function App() {
 
   return (
     <>
+      <Toaster />
       <Navbar />
 
       <Routes>

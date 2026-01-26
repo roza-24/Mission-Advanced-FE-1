@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthRedirect from "../hooks/useAuthRedirect";
+import { loginUser } from "../services/auth";
 
 export default function Login() {
   useAuthRedirect();
@@ -17,29 +18,16 @@ export default function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault();
     setError("");
 
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-
-    const found = users.find(
-      (u) =>
-        (u.username === form.identifier || u.email === form.identifier) &&
-        u.password === form.password
-    );
-
-    if (!found) {
-      setError("Email/Username atau Password salah");
-      return;
+    try {
+      loginUser(form.identifier, form.password);
+      navigate("/");
+    } catch (error) {
+      setError(error.message);
     }
-
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
-        email,
-      })
-    );
   }
 
   return (
